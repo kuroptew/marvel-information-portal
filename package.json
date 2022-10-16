@@ -1,14 +1,13 @@
 {
   "name": "marvel",
   "version": "0.1.0",
-  "homepage": "https://kuroptew.github.io/marvel-information-portal/",
+  "homepage": "https://kuroptew.github.io/marvel-information-portal",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
     "clamp-js": "^0.7.0",
-    "gh-pages": "^4.0.0",
     "prop-types": "^15.8.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
@@ -42,6 +41,7 @@
     ]
   },
   "devDependencies": {
+    "gh-pages": "^4.0.0",
     "sass": "^1.38.0"
   },
   "description": "This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).",
