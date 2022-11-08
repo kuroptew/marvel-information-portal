@@ -1,15 +1,31 @@
 import './charList.scss';
-import {useState, useEffect, useRef} from "react";
+import {useState, useEffect, useRef, useMemo} from "react";
 import useMarvelService from "../../services/MarvelService";
 import ErrorMessage from "../errorMessage/ErrorMessage";
 import Spinner from "../spinner/Spinner";
 import PropTypes from "prop-types";
+import {CSSTransition, TransitionGroup} from "react-transition-group";
+
+const setContent = (process, Component, newItemLoading) => {
+  switch (process) {
+    case 'waiting':
+      return <Spinner/>;
+    case 'loading':
+      return newItemLoading ? <Component/> : <Spinner/>;
+    case 'confirmed':
+      return <Component/>;
+    case 'error':
+      return <ErrorMessage/>;
+    default:
+      throw new Error('Unexpected process state')
+  }
+}
 
 const CharList = (props) => {
   const [charList, setCharList] = useState([])
-  const {loading, error, getAllCharacters} = useMarvelService()
+  const {getAllCharacters, process, setProcess} = useMarvelService()
   const [newItemLoading, setNewItemLoading] = useState(false)
-  const [offset, setOffset] = useState(210);
+  const [offset, setOffset] = useState(291);
   const [charEnded, setCharEnded] = useState(false)
 
   useEffect(() => {
@@ -21,6 +37,7 @@ const CharList = (props) => {
     initial ? setNewItemLoading(false) : setNewItemLoading(true)
     getAllCharacters(offset)
       .then(onCharListLoaded)
+      .then(() => setProcess('confirmed'))
   }
 
   const onCharListLoaded = (newCharList) => {
@@ -29,10 +46,10 @@ const CharList = (props) => {
       ended = true;
     }
 
-    setCharList( [...charList, ...newCharList])
-    setNewItemLoading(newItemLoading => false)
-    setOffset(offset => offset + 9)
-    setCharEnded(charEnded => ended)
+    setCharList([...charList, ...newCharList]);
+    setNewItemLoading(newItemLoading => false);
+    setOffset(offset => offset + 9);
+    setCharEnded(ended);
   }
 
   const itemRefs = useRef([])
@@ -49,8 +66,9 @@ const CharList = (props) => {
       let imgStyle = item.thumbnail.includes('image_not_available') ? {objectFit: 'unset'} : {objectFit: 'cover'}
 
       return (
-        <li className="char__item"
-            key={item.id}
+        <CSSTransition key={item.id} timeout={500} classNames='char__item'>
+          <li
+            className='char__item'
             tabIndex={0}
             ref={el => itemRefs.current[index] = el}
             onClick={() => {
@@ -64,29 +82,30 @@ const CharList = (props) => {
                 focusOnItem(index)
               }
             }}
-        >
-          <img src={item.thumbnail} alt={item.name} style={imgStyle}/>
-          <div className="char__name">{item.name}</div>
-        </li>
+          >
+            <img src={item.thumbnail} alt={item.name} style={imgStyle}/>
+            <div className="char__name">{item.name}</div>
+          </li>
+        </CSSTransition>
       )
     })
 
     return (
       <ul className="char__grid">
-        {items}
+        <TransitionGroup component={null}>
+          {items}
+        </TransitionGroup>
       </ul>
     )
   }
 
-  const errorMessage = error ? <ErrorMessage/> : null;
-  const spinner = loading && !newItemLoading ? <Spinner/> : null;
-  const content = renderItems(charList);
+  const elements = useMemo(()=>{
+    return setContent(process, () => renderItems(charList), newItemLoading)
+  }, [process])
 
   return (
     <div className="char__list">
-      {errorMessage}
-      {spinner}
-      {content}
+      {elements}
       <button
         className="button button__main button__long"
         disabled={newItemLoading}

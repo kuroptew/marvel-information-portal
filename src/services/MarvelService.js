@@ -1,28 +1,39 @@
 import useHttp from "../hooks/http.hook";
 
-const  useMarvelService =()=> {
-  const {loading ,request ,error, clearError}=useHttp();
+const useMarvelService = () => {
+  const {process, request, clearError, setProcess} = useHttp();
 
-  const _apiBase='https://gateway.marvel.com:443/v1/public/';
-  const _apiKey='apikey=008af015b2b2d7a8ef807f7c3395db16';
-  const _baseOffset=210
+  const _apiBase = 'https://gateway.marvel.com:443/v1/public/';
+  const _apiKey = 'apikey=008af015b2b2d7a8ef807f7c3395db16';
+  const _baseOffset = 228
 
-  const getAllCharacters = async (offset=_baseOffset)=>{
+  const getAllCharacters = async (offset = _baseOffset) => {
     const res = await request(`${_apiBase}characters?limit=9&offset=${offset}&${_apiKey}`)
     return res.data.results.map(_transformCharacter)
   }
 
-  const getCharacter = async (id)=>{
+  const getCharacterByName = async (name) => {
+    const res = await request(`${_apiBase}characters?name=${name}&${_apiKey}`);
+    return res.data.results.map(_transformCharacter);
+  }
+
+  const getCharacter = async (id) => {
     const res = await request(`${_apiBase}characters/${id}?${_apiKey}`)
     return _transformCharacter(res.data.results[0])
   }
 
-  const getAllComics = async (offset=_baseOffset)=>{
+  const getAllComics = async (offset = _baseOffset) => {
     const res = await request(`${_apiBase}comics?orderBy=issueNumber&limit=8&offset=${offset}&${_apiKey}`)
     return res.data.results.map(_transformComics)
   }
 
-  const _transformCharacter = (char)=>{
+  const getComic = async (id) => {
+    const res = await request(`${_apiBase}comics/${id}?${_apiKey}`);
+    return _transformComics(res.data.results[0]);
+    console.log(_transformComics(res.data.results[0]))
+  }
+
+  const _transformCharacter = (char) => {
     return {
       id: char.id,
       name: char.name,
@@ -46,7 +57,16 @@ const  useMarvelService =()=> {
     }
   }
 
-  return {loading, error, getCharacter, getAllCharacters, clearError, getAllComics}
+  return {
+    process,
+    setProcess,
+    getCharacter,
+    getAllCharacters,
+    clearError,
+    getAllComics,
+    getComic,
+    getCharacterByName
+  }
 }
 
 export default useMarvelService;
